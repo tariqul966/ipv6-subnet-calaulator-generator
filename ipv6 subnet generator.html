@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPv6 সাবনেট ক্যালকুলেটর ও জেনারেটর </title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success-color: #28a745;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--secondary-color);
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .input-box {
+            flex: 2;
+            min-width: 250px;
+        }
+
+        .prefix-box {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .btn-calc {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-calc:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-load {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: opacity 0.3s;
+        }
+
+        .btn-load:hover {
+            opacity: 0.9;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-left: 5px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .result-card p {
+            margin: 8px 0;
+            font-family: monospace;
+            font-size: 15px;
+        }
+
+        .result-card strong {
+            font-family: 'Segoe UI', sans-serif;
+            color: #555;
+        }
+
+        .subnet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .subnet-header h3 {
+            margin: 0;
+        }
+
+        .btn-copy-all {
+            padding: 8px 15px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-copy-all:hover {
+            background-color: #5a6268;
+        }
+
+        .subnet-container {
+            background: #282c34;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        .subnet-list {
+            max-height: 350px;
+            overflow-y: auto;
+            color: #abb2bf;
+            font-family: monospace;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .subnet-list li {
+            padding: 6px 10px;
+            border-bottom: 1px solid #3e4451;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subnet-list li:last-child {
+            border-bottom: none;
+        }
+
+        .copy-item-btn {
+            background: transparent;
+            border: 1px solid #4b5263;
+            color: #61afef;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .copy-item-btn:hover {
+            background: #4b5263;
+            color: #fff;
+        }
+
+        .error {
+            color: #d9534f;
+            font-weight: bold;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>IPv6 Subnet Calculator & Generator</h2>
+    
+    <div class="form-group">
+        <div class="input-box">
+            <label for="ipv6-input">IPv6 অ্যাড্রেস:</label>
+            <input type="text" id="ipv6-input" placeholder="e.g., 2001:db8::">
+        </div>
+        <div class="prefix-box">
+            <label for="prefix-input">বর্তমান প্রিফিক্স (/):</label>
+            <input type="number" id="prefix-input" min="1" max="128" value="64">
+        </div>
+        <div class="prefix-box">
+            <label for="new-prefix">নতুন প্রিফিক্স (/):</label>
+            <input type="number" id="new-prefix" min="1" max="128" value="68">
+        </div>
+    </div>
+
+    <button class="btn-calc" onclick="calculateIPv6()">হিসাব করুন এবং সাবনেট জেনারেট করুন</button>
+    <div id="error-msg" class="error">অনুগ্রহ করে একটি সঠিক IPv6 অ্যাড্রেস দিন।</div>
+
+    <div class="result-section" id="results">
+        <h3>ফলাফল:</h3>
+        <div class="result-card">
+            <p><strong>ইনপুট নেটওয়ার্ক:</strong> <span id="res-input"></span></p>
+            <p><strong>শুরুর আইপি (First IP):</strong> <span id="res-start"></span></p>
+            <p><strong>আইপি সংখ্যা (Total IPs):</strong> <span id="res-total"></span></p>
+        </div>
+
+        <div class="subnet-header">
+            <h3>জেনারেটেড সাবনেট সমূহ (<span id="subnet-count">0</span>টি):</h3>
+            <button class="btn-copy-all" onclick="copyAllSubnets()">সব সাবনেট কপি করুন</button>
+        </div>
+        
+        <div class="subnet-container">
+            <ul class="subnet-list" id="subnets-output">
+                </ul>
+        </div>
+        <div id="btn-container"></div>
+    </div>
+</div>
+
+<script>
+    let currentNetworkBigInt = 0n;
+    let currentNewPrefix = 68;
+    let currentSubnetSize = 0n;
+    let totalSubnetsCount = 0n;
+    let currentRenderedIndex = 0n;
+    const PAGE_SIZE = 10000n; 
+    let allGeneratedSubnetsArray = []; 
+
+    function expandIPv6(address) {
+        let validGroupCount = 8;
+        let blocks = address.split("::");
+
+        if (blocks.length > 2) return null; 
+
+        let fullAddress = "";
+        if (blocks.length === 2) {
+            let leftBlocks = blocks[0].split(":").filter(b => b !== "");
+            let rightBlocks = blocks[1].split(":").filter(b => b !== "");
+            let missingBlocksCount = validGroupCount - (leftBlocks.length + rightBlocks.length);
+            
+            let middle = [];
+            for (let i = 0; i < missingBlocksCount; i++) middle.push("0000");
+            
+            let allBlocks = leftBlocks.concat(middle).concat(rightBlocks);
+            fullAddress = allBlocks.map(b => b.padStart(4, "0")).join(":");
+        } else {
+            let allBlocks = address.split(":");
+            if (allBlocks.length !== 8) return null;
+            fullAddress = allBlocks.map(b => b.padStart(4, "0")).join(":");
+        }
+        return fullAddress;
+    }
+
+    function ipv6ToBigInt(expandedAddress) {
+        let hexString = expandedAddress.replace(/:/g, "");
+        return BigInt("0x" + hexString);
+    }
+
+    // IPv6-কে স্ট্যান্ডার্ড শর্ট ফর্মে কম্প্রেস করার ফাংশন
+    function compressIPv6(fullAddress) {
+        // ১. প্রতিটি ব্লকের শুরুর অহেতুক শূন্য (Leading Zeros) বাদ দেওয়া
+        let blocks = fullAddress.split(":").map(block => {
+            let clean = block.replace(/^0+/, "");
+            return clean === "" ? "0" : clean;
+        });
+
+        // ২. পর পর শূন্যের দীর্ঘতম গ্রুপ খুঁজে বের করে '::' দিয়ে রিপ্লেস করা
+        let maxZeroCount = 0;
+        let maxZeroIndex = -1;
+        let currentZeroCount = 0;
+        let currentZeroIndex = -1;
+
+        for (let i = 0; i < blocks.length; i++) {
+            if (blocks[i] === "0") {
+                if (currentZeroCount === 0) currentZeroIndex = i;
+                currentZeroCount++;
+                if (currentZeroCount > maxZeroCount) {
+                    maxZeroCount = currentZeroCount;
+                    maxZeroIndex = currentZeroIndex;
+                }
+            } else {
+                currentZeroCount = 0;
+            }
+        }
+
+        // RFC 5952 অনুযায়ী অন্তত ২টি বা তার বেশি পর পর শূন্যের ব্লক হলে তবেই '::' করা উচিত
+        if (maxZeroCount > 1) {
+            blocks.splice(maxZeroIndex, maxZeroCount, "");
+            // যদি একদম শুরু বা শেষে '::' হয়, তবে স্ট্যান্ডার্ড কোলন মেলানোর ফিক্স
+            if (maxZeroIndex === 0) blocks.unshift("");
+            if (maxZeroIndex + maxZeroCount === 8) blocks.push("");
+        }
+
+        return blocks.join(":").replace(/:::/g, "::");
+    }
+
+    function bigIntToShortIPv6(bigintValue) {
+        let hexStr = bigintValue.toString(16).padStart(32, "0");
+        let blocks = [];
+        for (let i = 0; i < 32; i += 4) {
+            blocks.push(hexStr.substr(i, 4));
+        }
+        let fullIPv6 = blocks.join(":");
+        return compressIPv6(fullIPv6); // শর্ট ফর্ম রিটার্ন করবে
+    }
+
+    function calculateIPv6() {
+        const ipInput = document.getElementById("ipv6-input").value.trim();
+        const prefix = parseInt(document.getElementById("prefix-input").value);
+        currentNewPrefix = parseInt(document.getElementById("new-prefix").value);
+        const errorMsg = document.getElementById("error-msg");
+        const resultsDiv = document.getElementById("results");
+        const btnContainer = document.getElementById("btn-container");
+
+        if (!ipInput || isNaN(prefix) || prefix < 1 || prefix > 128 || isNaN(currentNewPrefix)) {
+            errorMsg.style.display = "block";
+            resultsDiv.style.display = "none";
+            return;
+        }
+
+        const expanded = expandIPv6(ipInput);
+        if (!expanded) {
+            errorMsg.style.display = "block";
+            resultsDiv.style.display = "none";
+            return;
+        }
+        errorMsg.style.display = "none";
+
+        const ipBigInt = ipv6ToBigInt(expanded);
+        const mask = (1n << 128n) - (1n << (128n - BigInt(prefix)));
+        currentNetworkBigInt = ipBigInt & mask;
+
+        document.getElementById("res-input").innerText = `${bigIntToShortIPv6(currentNetworkBigInt)}/${prefix}`;
+        document.getElementById("res-start").innerText = bigIntToShortIPv6(currentNetworkBigInt);
+        
+        let totalIPs = 1n << (128n - BigInt(prefix));
+        document.getElementById("res-total").innerText = totalIPs.toLocaleString();
+
+        const subnetListElement = document.getElementById("subnets-output");
+        subnetListElement.innerHTML = "";
+        btnContainer.innerHTML = "";
+        allGeneratedSubnetsArray = []; 
+
+        if (currentNewPrefix <= prefix || currentNewPrefix > 128) {
+            document.getElementById("subnet-count").innerText = "0";
+            subnetListElement.innerHTML = "<li>ভুল ইনপুট: নতুন প্রিফিক্স অবশ্যই বর্তমান প্রিফিক্সের চেয়ে বড় হতে হবে।</li>";
+            resultsDiv.style.display = "block";
+            return;
+        }
+
+        totalSubnetsCount = 1n << (BigInt(currentNewPrefix) - BigInt(prefix));
+        document.getElementById("subnet-count").innerText = totalSubnetsCount.toLocaleString();
+
+        currentSubnetSize = 1n << (128n - BigInt(currentNewPrefix));
+        currentRenderedIndex = 0n;
+
+        renderNextSubnets();
+        resultsDiv.style.display = "block";
+    }
+
+    function renderNextSubnets() {
+        const subnetListElement = document.getElementById("subnets-output");
+        const btnContainer = document.getElementById("btn-container");
+        btnContainer.innerHTML = ""; 
+
+        let endLimit = currentRenderedIndex + PAGE_SIZE;
+        if (endLimit > totalSubnetsCount) endLimit = totalSubnetsCount;
+
+        const fragment = document.createDocumentFragment();
+
+        for (let i = currentRenderedIndex; i < endLimit; i++) {
+            let currentSubnetBigInt = currentNetworkBigInt + (i * currentSubnetSize);
+            let subnetStr = `${bigIntToShortIPv6(currentSubnetBigInt)}/${currentNewPrefix}`;
+            
+            allGeneratedSubnetsArray.push(subnetStr);
+
+            let li = document.createElement("li");
+            let span = document.createElement("span");
+            span.innerText = subnetStr;
+            
+            let copyBtn = document.createElement("button");
+            copyBtn.className = "copy-item-btn";
+            copyBtn.innerText = "Copy";
+            copyBtn.onclick = function() {
+                navigator.clipboard.writeText(subnetStr);
+                copyBtn.innerText = "Copied!";
+                setTimeout(() => copyBtn.innerText = "Copy", 1000);
+            };
+
+            li.appendChild(span);
+            li.appendChild(copyBtn);
+            fragment.appendChild(li);
+        }
+
+        subnetListElement.appendChild(fragment);
+        currentRenderedIndex = endLimit;
+
+        if (currentRenderedIndex < totalSubnetsCount) {
+            let loadBtn = document.createElement("button");
+            loadBtn.className = "btn-load";
+            loadBtn.innerText = `পরবর্তী ১০,০০০টি সাবনেট লোড করুন (বাকি আছে: ${(totalSubnetsCount - currentRenderedIndex).toLocaleString()}টি)`;
+            loadBtn.onclick = renderNextSubnets;
+            btnContainer.appendChild(loadBtn);
+        }
+    }
+
+    function copyAllSubnets() {
+        if (allGeneratedSubnetsArray.length === 0) return;
+        
+        const textToCopy = allGeneratedSubnetsArray.join("\n");
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const copyAllBtn = document.querySelector(".btn-copy-all");
+            copyAllBtn.innerText = "সব কপি হয়েছে!";
+            copyAllBtn.style.backgroundColor = "var(--success-color)";
+            setTimeout(() => {
+                copyAllBtn.innerText = "সব সাবনেট কপি করুন";
+                copyAllBtn.style.backgroundColor = "#6c757d";
+            }, 1500);
+        });
+    }
+</script>
+
+</body>
+</html>
