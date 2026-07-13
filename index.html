@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPv6 Subnet Calculator and Generator </title>
+    <title>IPv6 Subnet Calculator and Generator</title>
     <style>
         :root {
             --primary-color: #4a6fa5;
@@ -244,7 +244,9 @@
         <div class="result-card">
             <p><strong>Input network:</strong> <span id="res-input"></span></p>
             <p><strong>First IP:</strong> <span id="res-start"></span></p>
+            <p><strong>Last IP:</strong> <span id="res-last"></span></p>
             <p><strong>Total IPs:</strong> <span id="res-total"></span></p>
+            <p><strong>Number of /64s:</strong> <span id="res-64s"></span></p>
         </div>
 
         <div class="subnet-header">
@@ -253,8 +255,7 @@
         </div>
         
         <div class="subnet-container">
-            <ul class="subnet-list" id="subnets-output">
-                </ul>
+            <ul class="subnet-list" id="subnets-output"></ul>
         </div>
         <div id="btn-container"></div>
     </div>
@@ -299,15 +300,12 @@
         return BigInt("0x" + hexString);
     }
 
-    // IPv6-কে স্ট্যান্ডার্ড শর্ট ফর্মে কম্প্রেস করার ফাংশন
     function compressIPv6(fullAddress) {
-        // ১. প্রতিটি ব্লকের শুরুর অহেতুক শূন্য (Leading Zeros) বাদ দেওয়া
         let blocks = fullAddress.split(":").map(block => {
             let clean = block.replace(/^0+/, "");
             return clean === "" ? "0" : clean;
         });
 
-        // ২. পর পর শূন্যের দীর্ঘতম গ্রুপ খুঁজে বের করে '::' দিয়ে রিপ্লেস করা
         let maxZeroCount = 0;
         let maxZeroIndex = -1;
         let currentZeroCount = 0;
@@ -326,10 +324,8 @@
             }
         }
 
-        // RFC 5952 অনুযায়ী অন্তত ২টি বা তার বেশি পর পর শূন্যের ব্লক হলে তবেই '::' করা উচিত
         if (maxZeroCount > 1) {
             blocks.splice(maxZeroIndex, maxZeroCount, "");
-            // যদি একদম শুরু বা শেষে '::' হয়, তবে স্ট্যান্ডার্ড কোলন মেলানোর ফিক্স
             if (maxZeroIndex === 0) blocks.unshift("");
             if (maxZeroIndex + maxZeroCount === 8) blocks.push("");
         }
@@ -344,7 +340,7 @@
             blocks.push(hexStr.substr(i, 4));
         }
         let fullIPv6 = blocks.join(":");
-        return compressIPv6(fullIPv6); // শর্ট ফর্ম রিটার্ন করবে
+        return compressIPv6(fullIPv6);
     }
 
     function calculateIPv6() {
@@ -373,11 +369,25 @@
         const mask = (1n << 128n) - (1n << (128n - BigInt(prefix)));
         currentNetworkBigInt = ipBigInt & mask;
 
+        // Output Inputs
         document.getElementById("res-input").innerText = `${bigIntToShortIPv6(currentNetworkBigInt)}/${prefix}`;
         document.getElementById("res-start").innerText = bigIntToShortIPv6(currentNetworkBigInt);
         
+        // Calculate Last IP
         let totalIPs = 1n << (128n - BigInt(prefix));
+        let lastIPBigInt = currentNetworkBigInt + totalIPs - 1n;
+        document.getElementById("res-last").innerText = bigIntToShortIPv6(lastIPBigInt);
+        
+        // Output Total IPs
         document.getElementById("res-total").innerText = totalIPs.toLocaleString();
+
+        // Calculate Number of /64s
+        if (prefix <= 64) {
+            let num64s = 1n << (64n - BigInt(prefix));
+            document.getElementById("res-64s").innerText = num64s.toLocaleString();
+        } else {
+            document.getElementById("res-64s").innerText = "0 (Prefix is wider than /64)";
+        }
 
         const subnetListElement = document.getElementById("subnets-output");
         subnetListElement.innerHTML = "";
