@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPv6 সাবনেট ক্যালকুলেটর ও জেনারেটর </title>
+    <title>IPv6 Subnet Calculator and Generator </title>
     <style>
         :root {
             --primary-color: #4a6fa5;
@@ -223,33 +223,33 @@
     
     <div class="form-group">
         <div class="input-box">
-            <label for="ipv6-input">IPv6 অ্যাড্রেস:</label>
+            <label for="ipv6-input">IPv6 address:</label>
             <input type="text" id="ipv6-input" placeholder="e.g., 2001:db8::">
         </div>
         <div class="prefix-box">
-            <label for="prefix-input">বর্তমান প্রিফিক্স (/):</label>
+            <label for="prefix-input">Prefix Length (/):</label>
             <input type="number" id="prefix-input" min="1" max="128" value="64">
         </div>
         <div class="prefix-box">
-            <label for="new-prefix">নতুন প্রিফিক্স (/):</label>
+            <label for="new-prefix">Subnets (/):</label>
             <input type="number" id="new-prefix" min="1" max="128" value="68">
         </div>
     </div>
 
-    <button class="btn-calc" onclick="calculateIPv6()">হিসাব করুন এবং সাবনেট জেনারেট করুন</button>
-    <div id="error-msg" class="error">অনুগ্রহ করে একটি সঠিক IPv6 অ্যাড্রেস দিন।</div>
+    <button class="btn-calc" onclick="calculateIPv6()">Calculate & Generate</button>
+    <div id="error-msg" class="error">Please enter a valid IPv6 address.</div>
 
     <div class="result-section" id="results">
-        <h3>ফলাফল:</h3>
+        <h3>Results:</h3>
         <div class="result-card">
-            <p><strong>ইনপুট নেটওয়ার্ক:</strong> <span id="res-input"></span></p>
-            <p><strong>শুরুর আইপি (First IP):</strong> <span id="res-start"></span></p>
-            <p><strong>আইপি সংখ্যা (Total IPs):</strong> <span id="res-total"></span></p>
+            <p><strong>Input network:</strong> <span id="res-input"></span></p>
+            <p><strong>First IP:</strong> <span id="res-start"></span></p>
+            <p><strong>Total IPs:</strong> <span id="res-total"></span></p>
         </div>
 
         <div class="subnet-header">
-            <h3>জেনারেটেড সাবনেট সমূহ (<span id="subnet-count">0</span>টি):</h3>
-            <button class="btn-copy-all" onclick="copyAllSubnets()">সব সাবনেট কপি করুন</button>
+            <h3>Generated subnets (<span id="subnet-count">0</span>):</h3>
+            <button class="btn-copy-all" onclick="copyAllSubnets()">Copy all subnets</button>
         </div>
         
         <div class="subnet-container">
@@ -441,7 +441,7 @@
         if (currentRenderedIndex < totalSubnetsCount) {
             let loadBtn = document.createElement("button");
             loadBtn.className = "btn-load";
-            loadBtn.innerText = `পরবর্তী ১০,০০০টি সাবনেট লোড করুন (বাকি আছে: ${(totalSubnetsCount - currentRenderedIndex).toLocaleString()}টি)`;
+            loadBtn.innerText = `Load the next 10,000 subnets (Remaining: ${(totalSubnetsCount - currentRenderedIndex).toLocaleString()})`;
             loadBtn.onclick = renderNextSubnets;
             btnContainer.appendChild(loadBtn);
         }
@@ -453,10 +453,10 @@
         const textToCopy = allGeneratedSubnetsArray.join("\n");
         navigator.clipboard.writeText(textToCopy).then(() => {
             const copyAllBtn = document.querySelector(".btn-copy-all");
-            copyAllBtn.innerText = "সব কপি হয়েছে!";
+            copyAllBtn.innerText = "All copied!";
             copyAllBtn.style.backgroundColor = "var(--success-color)";
             setTimeout(() => {
-                copyAllBtn.innerText = "সব সাবনেট কপি করুন";
+                copyAllBtn.innerText = "Copy all subnets";
                 copyAllBtn.style.backgroundColor = "#6c757d";
             }, 1500);
         });
